@@ -25,6 +25,9 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deploy.outputs.page_url }}
+    # A fork deploys to its own github.io address, with no domain and no Cloudflare of its own.
+    env:
+      HAS_CLOUDFLARE: ${{ secrets.CLOUDFLARE_API_TOKEN != '' && secrets.CLOUDFLARE_ZONE_ID != '' }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -73,6 +76,7 @@ jobs:
         uses: actions/deploy-pages@v4
 
       - name: Purge Cloudflare's cache for the studio
+        if: env.HAS_CLOUDFLARE == 'true' && hashFiles('slot-cart-studio/CNAME') != ''
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ZONE_ID: ${{ secrets.CLOUDFLARE_ZONE_ID }}
