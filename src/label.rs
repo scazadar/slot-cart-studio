@@ -15,11 +15,18 @@ pub const H: u32 = 661;
 pub const GB_W: u32 = 1024;
 pub const GB_H: u32 = 901;
 
+/// The SNES label, a wide strip like the 103.5 by 36 mm sticker on a PAL cart, at its well's
+/// proportion for the same reason the Game Boy's is: a GBA-shaped label would lose its top and
+/// bottom. As wide as the GBA label, so it costs less to compose.
+pub const SNES_W: u32 = 1280;
+pub const SNES_H: u32 = 446;
+
 /// The label a platform's well wants.
 pub fn size(platform: Platform) -> (u32, u32) {
     match platform {
         Platform::Gba => (W, H),
         Platform::Gb | Platform::Gbc => (GB_W, GB_H),
+        Platform::Snes => (SNES_W, SNES_H),
     }
 }
 
@@ -597,6 +604,13 @@ mod tests {
         let want = crate::cart::GB_LABEL_W as f32 / crate::cart::GB_LABEL_H as f32;
         let got = GB_W as f32 / GB_H as f32;
         assert!((got - want).abs() < 0.01, "{got} is not the well's {want}");
+        assert_eq!(size(Platform::Snes), (SNES_W, SNES_H));
+        let want = crate::cart::SNES_LABEL_W as f32 / crate::cart::SNES_LABEL_H as f32;
+        let got = SNES_W as f32 / SNES_H as f32;
+        assert!(
+            (got - want).abs() < 0.01,
+            "{got} is not the SNES well's {want}"
+        );
 
         // And what comes out carries it.
         let mut logo = Vec::new();
@@ -610,7 +624,11 @@ mod tests {
                 .unwrap();
         }
         let deep = hue::hsl_to_rgb(200.0, 0.65, 0.24);
-        for (platform, want) in [(Platform::Gba, (W, H)), (Platform::Gbc, (GB_W, GB_H))] {
+        for (platform, want) in [
+            (Platform::Gba, (W, H)),
+            (Platform::Gbc, (GB_W, GB_H)),
+            (Platform::Snes, (SNES_W, SNES_H)),
+        ] {
             let label = Label::from_png(&logo, deep, platform, None).expect("logo decodes");
             let reader = png::Decoder::new(std::io::Cursor::new(label.png()))
                 .read_info()

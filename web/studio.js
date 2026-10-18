@@ -35,6 +35,7 @@ import { applyFill, autoFill, available, fillCounts, fillText, wears } from './l
 const $ = (id) => document.getElementById(id);
 const limit = limiter(4);
 // The GBA game code sits at 0xAC and the Game Boy header ends at 0x150; nothing past that is read.
+// A SNES cart's look comes from its folder alone, so its header is not read at all.
 const HEAD = 0x150;
 const FATAL = 'The studio ran out of memory or hit an internal error. Reload the page to start again.';
 const BUILD = 'dev';
@@ -68,7 +69,7 @@ function newCart({ platform, stem, file }) {
     stem,
     file,
     code: '',
-    // A Game Boy pak's header, which picks its shell and plastic. Empty on a GBA cart.
+    // A Game Boy pak's header, which picks its shell and plastic. Empty on a GBA or SNES cart.
     head: new Uint8Array(0),
     shell: '',
     shellOnCard: '',
@@ -531,16 +532,20 @@ async function open(source) {
   $('write-bar').hidden = true;
   $('fill-open').hidden = true;
   if (session.carts.length === 0) {
-    banner('There are no .gba files in that card’s Games folder.');
+    banner('There are no games in that card’s Games folder.');
     return;
   }
   loading('Reading the card…');
   track(identify(session));
 }
 
-async function crcOf(file) {
+// A SNES dump from a copier carries 512 bytes of its own in front of the game. No-Intro checksums
+// the game alone, so those bytes are left out, the way slot-store's snes.rs skips them.
+const copierHeader = (platform, file) => (platform === 'SNES' && file.size % 1024 === 512 ? 512 : 0);
+
+async function crcOf(file, skip = 0) {
   const crc = new Crc32();
-  const reader = file.stream().getReader();
+  const reader = file.slice(skip).stream().getReader();
   for (;;) {
     const { done, value } = await reader.read();
     if (done) return crc.finish();
@@ -584,7 +589,7 @@ async function identify(s) {
       // Only a GBA rom carries a game code. On a Game Boy cart 0xAC is inside the RST vectors,
       // so a code read from there is opcode bytes dressed up as one.
       c.code = c.platform === 'GBA' ? header_code(head) : '';
-      if (c.platform !== 'GBA') c.head = head;
+      if (c.platform === 'GB' || c.platform === 'GBC') c.head = head;
       const label = s.source.labels.get(labelKey(c.platform, c.stem));
       if (label) {
         const bytes = new Uint8Array(await (await label()).arrayBuffer());
@@ -593,7 +598,7 @@ async function identify(s) {
         c.existing = existing_face(bytes, c.platform, c.code, c.head, c.shell, c.stem);
         c.looking = false;
       } else {
-        c.crc = await crcOf(file);
+        c.crc = await crcOf(file, copierHeader(c.platform, file));
       }
     } catch (e) {
       if (trapped(e)) return;
@@ -713,7 +718,7 @@ const platformsOf = (s) => PLATFORMS.filter((p) => s.carts.some((c) => c.platfor
 
 // A tab per platform on the card, with what it holds. One platform is no choice at all, so a
 // card of nothing but GBA carts shows no switcher and reads exactly as it did before.
-const PLATFORM_NAMES = { GBA: 'Game Boy Advance', GB: 'Game Boy', GBC: 'Game Boy Color' };
+const PLATFORM_NAMES = { GBA: 'Game Boy Advance', GB: 'Game Boy', GBC: 'Game Boy Color', SNES: 'Super Nintendo' };
 
 function renderTabs() {
   const s = session;

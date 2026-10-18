@@ -5,7 +5,8 @@ vars:
   # What the studio's faces are made of: the files compiled in place, slot's art.rs that
   # src/art.rs copies, the assets they include, where `Cart` comes from, gba.rs, whose header
   # rule src/rom.rs mirrors, gb.rs, whose header the shim answers for, and ini.rs and
-  # cart_shell.rs, which the shell choice is read and merged through.
+  # cart_shell.rs, which the shell choice is read and merged through, platform.rs, which names the
+  # platforms, and the cart PNGs bitmaps.rs includes from slot's own assets/.
   FACE_PATHS: >-
     crates/slot-ui/src/cart.rs crates/slot-ui/src/shell.rs crates/slot-ui/src/silhouette.rs
     crates/slot-ui/src/text.rs crates/slot-ui/src/art.rs crates/slot-ui/assets/cart.svg
@@ -16,7 +17,7 @@ vars:
     crates/slot-ui/assets/label.ttf crates/slot-store/src/scan.rs crates/slot-store/src/gba.rs
     crates/slot-store/src/gb.rs crates/slot-store/src/ini.rs crates/slot-store/src/cart_shell.rs
     crates/slot-ui/src/bitmaps.rs crates/slot-ui/src/board.rs crates/slot-gfx/src/surface.rs
-    crates/slot-ui/assets/*.png
+    crates/slot-ui/assets/*.png crates/slot-store/src/platform.rs assets/*.png
 
 tasks:
   default:

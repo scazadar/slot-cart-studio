@@ -124,6 +124,40 @@ fn assert_same_as_slot(label: &[u8]) {
     }
 }
 
+/// A SNES cart, which takes nothing from its header: one plastic, one mould.
+fn snes_card(label: &[u8]) -> TempDir {
+    let d = tempfile::tempdir().expect("tempdir");
+    for sub in ["Games", "Labels"] {
+        std::fs::create_dir_all(d.path().join(sub).join("SNES")).expect("content dir");
+    }
+    std::fs::write(
+        d.path().join(format!("Games/SNES/{STEM}.sfc")),
+        vec![0u8; 0x8000],
+    )
+    .expect("rom");
+    std::fs::write(d.path().join(format!("Labels/SNES/{STEM}.png")), label).expect("label");
+    d
+}
+
+#[test]
+fn a_snes_label_matches_slot() {
+    for label in [
+        png_rgb(64, 64, |_, _| [0xd0, 0x20, 0xa0]),
+        png_rgba(196, 86, |x, y| {
+            [x as u8, y as u8, 0x40, ((x * 3 + y) % 256) as u8]
+        }),
+        png_rgb(810, 282, |x, y| [(x / 4) as u8, (y / 2) as u8, 0x30]),
+        b"not a png".to_vec(),
+    ] {
+        let d = snes_card(&label);
+        let (want, code, stem) = slot_face(d.path());
+        assert!(
+            want == face::from_png(&label, face::platform_of("SNES"), &code, &[], "", &stem),
+            "the SNES face differs from slot's"
+        );
+    }
+}
+
 #[test]
 fn a_flat_opaque_label_matches_slot() {
     assert_same_as_slot(&png_rgb(64, 64, |_, _| [0xd0, 0x20, 0xa0]));

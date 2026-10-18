@@ -178,7 +178,7 @@ test('a folder with files but no games is still not a slot card', () => {
 
 test('roms loose in Games ask to be moved into platform folders by hand', async () => {
   const loose = { Games: { 'A.gba': '' } };
-  const asks = { message: /Move them into the GBA, GB and GBC folders/ };
+  const asks = { message: /Move them into the GBA, GB, GBC and SNES folders/ };
   await assert.rejects(fromDirectory(dirHandle(loose)), asks);
   assert.throws(() => fromFiles(listed(loose)), asks);
 });
@@ -196,4 +196,18 @@ test('a card without shell files reads as empty where the browser refuses .ini n
   });
   const source = await fromDirectory(windows(dirHandle({ ...GAMES, Config: {}, Labels: {} })));
   assert.deepEqual(await layers(source), { system: '', labels: '' });
+});
+
+test('SNES games are read from their own folder, under either extension, and their labels with them', async () => {
+  const tree = {
+    Games: { SNES: { 'Zelda.sfc': '', 'Mario.smc': '', 'Stray.gba': '' }, GBA: { 'A.gba': '' } },
+    Labels: { SNES: { 'Zelda.png': 'z' } },
+  };
+  for (const source of [await fromDirectory(dirHandle(tree)), fromFiles(listed(tree))]) {
+    assert.deepEqual(
+      source.carts.map((c) => `${c.platform}/${c.stem}`),
+      ['GBA/A', 'SNES/Mario', 'SNES/Zelda'],
+    );
+    assert.ok(source.labels.has('SNES/Zelda'));
+  }
 });

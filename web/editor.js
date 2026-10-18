@@ -175,7 +175,8 @@ export function createEditor(api) {
     $('ed-shell-custom').value = `#${shell.colour}`;
     press('ed-finish', shell.finish);
     enable('ed-finish', shells && !shell.auto);
-    $('ed-outline-row').hidden = c.platform === 'GBA';
+    // Notched or rounded is a Game Boy pak's choice; a GBA or SNES cart has one mould.
+    $('ed-outline-row').hidden = c.platform !== 'GB' && c.platform !== 'GBC';
     press('ed-outline', shell.outline);
     enable('ed-outline', shells);
 

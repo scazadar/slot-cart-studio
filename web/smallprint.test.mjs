@@ -2,6 +2,14 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { smallPrint } from './smallprint.js';
 
+test('a SNES cart prints its line, and a PAL one the market it was sold in', () => {
+  assert.equal(smallPrint('SNES', '', ['Germany']), 'SNSP · NOE');
+  assert.equal(smallPrint('SNES', '', ['Europe']), 'SNSP · EUR');
+  assert.equal(smallPrint('SNES', '', ['USA']), 'SNS');
+  assert.equal(smallPrint('SNES', '', ['Japan']), 'SHVC');
+  assert.equal(smallPrint('SNES', '', []), 'SNSP');
+});
+
 test('a GBA cart prints its product code, with the region its code was made for', () => {
   assert.equal(smallPrint('GBA', 'AWRE', ['USA']), 'AGB-AWRE-USA');
   assert.equal(smallPrint('GBA', 'BPEP', []), 'AGB-BPEP-EUR');

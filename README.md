@@ -11,4 +11,4 @@ Game names and CRCs come from
 [libretro-database](https://github.com/libretro/libretro-database) (CC BY-SA 4.0); logos come
 from [ScreenScraper](https://www.screenscraper.fr/) (CC BY-NC-SA 4.0). 
 
-Game Boy is a trademark of Nintendo. Not affiliated with Nintendo.
+Game Boy and Super Nintendo are trademarks of Nintendo. Not affiliated with Nintendo.

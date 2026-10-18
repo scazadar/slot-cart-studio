@@ -33,10 +33,11 @@ jobs:
       - id: pin
         run: echo "ref=$(cat slot-cart-studio/slot.ref)" >> "$GITHUB_OUTPUT"
 
-      # Beside the studio, as the two sit on a desk, so ../slot means the same thing here.
+      # Beside the studio, as the two sit on a desk, so ../slot means the same thing here. The fork,
+      # because slot.ref names a commit with SNES support that only the fork has.
       - uses: actions/checkout@v7
         with:
-          repository: BrandonKowalski/slot
+          repository: scazadar/slot
           ref: ${{ steps.pin.outputs.ref }}
           path: slot
 
