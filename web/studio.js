@@ -686,7 +686,8 @@ async function dress(s, c) {
       : limit(async () =>
           s === session && !fatal ? fetchThumb(c.platform, folder, name, stub_target) : null,
         ).catch(noImage);
-  // Logos come from our own set alone, by checksum; libretro is asked only for box art.
+  // Logos come from our own set first, by checksum. Where it has none (it holds no SNES carts, and
+  // it answers only its own site, so a fork never reads it) libretro's logo stands in.
   const ours = (media) => {
     const path = key && artIndex?.[key]?.[media];
     if (!path) return Promise.resolve(null);
@@ -698,7 +699,7 @@ async function dress(s, c) {
   // after the logo.
   const boxJob = thumb('Named_Boxarts');
   if (!c.logoBytes) {
-    const logo = await ours('wheel');
+    const logo = (await ours('wheel')) ?? (await thumb('Named_Logos'));
     if (s !== session || fatal) return;
     c.logoBytes = logo && readable(logo) ? logo : null;
     // How bright the logo is decides which way its ground goes, so it is measured with the logo.
@@ -1096,7 +1097,7 @@ async function start() {
       artIndex = await fetchIndex(ART_BASE);
       console.info(`art set: ${Object.keys(artIndex).length} checksums from ${ART_BASE}`);
     } catch (e) {
-      banner(`The art set at ${ART_BASE} didn’t load (${e.message}), so carts get slot’s own labels.`);
+      banner(`The art set at ${ART_BASE} didn’t load (${e.message}), so logos come from libretro alone.`);
     }
   }
   const direct = 'showDirectoryPicker' in window;
